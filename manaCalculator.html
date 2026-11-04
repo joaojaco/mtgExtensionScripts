@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora Inteligente de Base de Mana</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #121212;
+      color: #e0e0e0;
+      margin: 0;
+      padding: 16px;
+      font-size: 13px;
+    }
+    h2 {
+      margin-top: 0;
+      color: #fff;
+      font-size: 16px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 8px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #bbb;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      background: #1e1e1e;
+      color: #fff;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 8px;
+      box-sizing: border-box;
+      font-family: monospace;
+      font-size: 12px;
+      resize: vertical;
+    }
+    .opcoes-linha {
+      display: flex;
+      gap: 16px;
+      margin: 12px 0;
+      align-items: center;
+    }
+    .opcoes-linha label {
+      font-weight: normal;
+      margin-bottom: 0;
+      cursor: pointer;
+    }
+    input[type="number"] {
+      width: 60px;
+      background: #1e1e1e;
+      color: #fff;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 4px;
+      text-align: center;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    button.secundario {
+      background: #374151;
+    }
+    button.secundario:hover {
+      background: #4b5563;
+    }
+    #status {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #aaa;
+      white-space: pre-wrap;
+      background: #1a1a1a;
+      padding: 8px;
+      border-radius: 4px;
+      border-left: 3px solid #2563eb;
+    }
+    .barra-cor {
+      height: 8px;
+      border-radius: 4px;
+      display: flex;
+      overflow: hidden;
+      margin: 8px 0 16px 0;
+      background: #333;
+    }
+    .cor-w { background-color: #f8f6d8; }
+    .cor-u { background-color: #0e68ab; }
+    .cor-b { background-color: #150b00; border: 1px solid #444; }
+    .cor-r { background-color: #d3202a; }
+    .cor-g { background-color: #00733e; }
+    .cor-c { background-color: #9e9e9e; }
+  </style>
+</head>
+<body>
+
+  <h2>Calculadora de Base de Mana Inteligente</h2>
+
+  <label for="entrada">Lista do deck:</label>
+  <textarea id="entrada" placeholder="1x Sol Ring&#10;1x Counterspell&#10;1x Lightning Bolt..."></textarea>
+
+  <div class="opcoes-linha">
+    <label for="totalLands">Terrenos desejados:</label>
+    <input type="number" id="totalLands" value="36" min="20" max="50">
+    <label><input type="checkbox" id="manterExistentes" checked> Manter não-básicos/utilitários</label>
+  </div>
+
+  <button id="calcular">1. Analisar Pips e Curva</button>
+  <button id="gerarLista" class="secundario">2. Gerar Lista Atualizada</button>
+
+  <div class="barra-cor" id="barraProgressoCores"></div>
+
+  <label for="saida">Resultado (Lista Atualizada):</label>
+  <textarea id="saida" readonly placeholder="A lista atualizada com a distribuição de terrenos aparecerá aqui..."></textarea>
+
+  <button id="copiar" style="margin-top: 8px;">Copiar resultado</button>
+
+  <div id="status">Cole a lista do deck e clique em "Analisar Pips e Curva".</div>
+
+  <script src="manaCalculator.js"></script>
+</body>
+</html>

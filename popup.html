@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      width: 300px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 14px;
+      margin: 0;
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+    h2 {
+      font-size: 16px;
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: #38bdf8;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: #0284c7;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+      text-align: left;
+      transition: background 0.2s;
+    }
+    button:hover { background: #0369a1; }
+    .nota {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🃏 MTG Deck Utilities</h2>
+
+  <button id="btnAbrirBuscaIA">✨ Busca Inteligente (IA)</button>
+  <button id="btnAbrirSetSelector">📦 Seletor de Sets</button>
+  <button id="btnAbrirManaCalc">🧮 Calculadora de Mana</button>
+
+  <div class="nota">Cada ferramenta abre em uma janela própria, que não fecha ao clicar fora.</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

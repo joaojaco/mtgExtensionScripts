@@ -1,15 +1,19 @@
-// ---------- Menus de clique direito (EDHREC) ----------
+// ---------- Menus de clique direito (EDHREC e Seleção de Texto) ----------
 function criarMenu() {
   chrome.contextMenus.removeAll(() => {
     const contexts = ["image", "link", "selection"];
-    const documentUrlPatterns = ["https://edhrec.com/*"];
-    const itens = [
-      ["open-scryfall", "Abrir essa carta no Scryfall"],
-      ["open-tagger", "Abrir essa carta no Scryfall Tagger"]
-    ];
-    for (const [id, title] of itens) {
-      chrome.contextMenus.create({ id, title, contexts, documentUrlPatterns });
-    }
+    const documentUrlPatterns = ["https://edhrec.com/*", "https://www.google.com/*"];
+    
+    // Itens para EDHREC
+    chrome.contextMenus.create({ id: "open-scryfall", title: "Abrir essa carta no Scryfall", contexts: ["image", "link", "selection"], documentUrlPatterns: ["https://edhrec.com/*"] });
+    chrome.contextMenus.create({ id: "open-tagger", title: "Abrir essa carta no Scryfall Tagger", contexts: ["image", "link", "selection"], documentUrlPatterns: ["https://edhrec.com/*"] });
+
+    // Novo item universal para abrir texto selecionado (ex: queries geradas pelo Google)
+    chrome.contextMenus.create({
+      id: "abrir-comando-scryfall",
+      title: "Abrir comando no Scryfall",
+      contexts: ["selection"]
+    });
   });
 }
 
@@ -22,10 +26,15 @@ function abrir(url) {
   chrome.tabs.create({ url });
 }
 
-// ---------- Descobrir a carta clicada ----------
-// Devolve o objeto da carta do Scryfall (ou null)
+// ---------- Atalho na Barra de Endereços (Omnibox: digite "sc" + Espaço) ----------
+chrome.omnibox.onInputEntered.addListener((textoDigitado) => {
+  const queryCompleta = `faça um comando valido no scryfall que: ${textoDigitado}`;
+  const urlGoogle = `https://www.google.com/search?q=${encodeURIComponent(queryCompleta)}`;
+  abrir(urlGoogle);
+});
+
+// ---------- Descobrir a carta clicada (EDHREC) ----------
 async function acharCarta(info) {
-  // 1) Imagem da carta (o UUID da imagem é o ID da carta no Scryfall)
   const m = info.srcUrl && info.srcUrl.match(UUID);
   if (m) {
     try {
@@ -36,7 +45,6 @@ async function acharCarta(info) {
     }
   }
 
-  // 2) Nome selecionado ou link de carta (edhrec.com/cards/nome-da-carta)
   let nome = info.selectionText;
   if (!nome && info.linkUrl) {
     const l = new URL(info.linkUrl).pathname.match(/^\/cards\/([^/]+)/);
@@ -57,6 +65,15 @@ async function acharCarta(info) {
 
 // ---------- Cliques nos menus ----------
 chrome.contextMenus.onClicked.addListener(async (info) => {
+  // Novo fluxo: Abrir texto selecionado diretamente como query no Scryfall
+  if (info.menuItemId === "abrir-comando-scryfall") {
+    if (info.selectionText) {
+      const queryLimpa = info.selectionText.trim();
+      return abrir("https://scryfall.com/search?q=" + encodeURIComponent(queryLimpa));
+    }
+    return;
+  }
+
   if (info.menuItemId === "open-tagger") {
     const carta = await acharCarta(info);
     if (carta && carta.set && carta.collector_number) {
@@ -64,7 +81,6 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
         `https://tagger.scryfall.com/card/${carta.set}/${encodeURIComponent(carta.collector_number)}`
       );
     }
-    // Se não achou a carta, abre a busca do Scryfall como plano B
     if (info.selectionText) {
       return abrir("https://scryfall.com/search?q=" + encodeURIComponent(info.selectionText));
     }
@@ -73,7 +89,6 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
 
   if (info.menuItemId !== "open-scryfall") return;
 
-  // ----- Abrir no Scryfall -----
   if (info.selectionText) {
     return abrir("https://scryfall.com/search?q=" + encodeURIComponent(info.selectionText));
   }
@@ -98,11 +113,10 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
   }
 });
 
-// ---------- Ícone da extensão: abre a janela própria ----------
+// ---------- Ícone da extensão: abre o seletor de sets ----------
 chrome.action.onClicked.addListener(async () => {
   const url = chrome.runtime.getURL("setSelector.html");
 
-  // Se a janela já está aberta, só traz para a frente
   const janelas = await chrome.windows.getAll({ populate: true });
   const existente = janelas.find(
     (j) => j.tabs && j.tabs.some((t) => t.url === url)

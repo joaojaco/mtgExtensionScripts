@@ -1,6 +1,3 @@
-# mtgExtensionScripts
-Some features in a special extension created by me vibecoding with AI Agents.
-
 # 🃏 MTG Deck Utilities - Chrome Extension
 
 Uma extensão para o Google Chrome desenvolvida para otimizar o fluxo de construção e análise de decks de **Magic: The Gathering (Commander)**, integrada a plataformas como **EDHREC** e com suporte completo a listas exportadas do **Archidekt**.

@@ -1,55 +1,55 @@
 # 🃏 MTG Deck Utilities - Chrome Extension
 
-Uma extensão para o Google Chrome desenvolvida para otimizar o fluxo de construção e análise de decks de **Magic: The Gathering (Commander)**, integrada a plataformas como **EDHREC** e com suporte completo a listas exportadas do **Archidekt**.
+A Google Chrome extension designed to optimize the deck-building and analysis workflow for **Magic: The Gathering (Commander)**, integrated with platforms like **EDHREC** and featuring full support for card lists exported from **Archidekt**.
 
 ---
 
-## 🚀 Funcionalidades Principais
+## 🚀 Key Features
 
-### 1. 🔍 Alt-Hover & Visualizador de Tokens (`alt-HoverImage.js`)
-* **Zoom Rápido no EDHREC**: Pressione e segure **`Alt`** sobre qualquer carta para exibi-la em alta resolução de forma flutuante.
-* **Visualizador de Tokens (`Alt + Q`)**: Enquanto estiver segurando o **`Alt`** para ver a carta, mantenha a tecla **`Q`** pressionada para inspecionar instantaneamente todas as fichas/tokens geradas por ela (buscadas em tempo real e de forma assíncrona via Scryfall).
-* **Redimensionamento por Scroll**: Utilize o *scroll* (rodinha) do mouse com o zoom aberto para redimensionar dinamicamente o tamanho das imagens na tela (com salvamento da preferência no `localStorage`).
-* **Blindagem Anti-Travamento**: Contém proteções automáticas (checagem contínua do estado do teclado via `e.altKey`, clique de segurança na tela e perda de foco via `blur`) para garantir que o zoom nunca fique travado ou preso.
+### 1. 🔍 Alt-Hover & Token Viewer (`alt-HoverImage.js`)
+* **Quick Zoom on EDHREC**: Press and hold **`Alt`** over any card to display a high-resolution floating preview.
+* **Token Viewer (`Alt + Q`)**: While holding **`Alt`** to view a card, hold down the **`Q`** key to instantly inspect all tokens created by that card (fetched asynchronously in real time via Scryfall).
+* **Scroll Resizing**: Use the mouse scroll wheel while the zoom is active to dynamically resize the images on screen (with preferences saved to `localStorage`).
+* **Anti-Freeze Protection**: Includes automatic safeguards (continuous keyboard state checking via `e.altKey`, safety click-to-close, and loss-of-focus detection via `blur`) to ensure the preview never gets stuck on screen.
 
-### 2. 🔗 Atalhos de Abertura Direta (`alt-HoverImage.js`)
-* **Abertura Direta no Scryfall**: Atalhos integrados para abrir rapidamente a página oficial do card diretamente no Scryfall.
-* **Abertura Direta no Scryfall Tagger**: Atalho para navegar direto para o **Scryfall Tagger** da carta atual, facilitando a consulta de tags de comunidade, ilustradores, mecânicas e classificações visuais.
+### 2. 🔗 Direct Opening Shortcuts (`alt-HoverImage.js`)
+* **Direct Open on Scryfall**: Built-in shortcuts to quickly open the official card page directly on Scryfall.
+* **Direct Open on Scryfall Tagger**: Shortcut to navigate straight to the **Scryfall Tagger** page for the hovered card, making it easy to check community tags, artists, mechanics, and visual classifications.
 
-### 3. 🧮 Calculadora de Mana Inteligente (`manaCalculator.js`)
-* **Análise de Curva e Pips**: Lê os custos de mana e a curva (CMC) das cartas não-terreno do deck para calcular matematicamente a quantidade ideal de terrenos (sugerindo entre 30 e 42 cartas).
-* **Distribuição Proporcional de Básicos**: Calcula a proporção exata de cada terreno básico (*Plains, Island, Swamp, Mountain, Forest, Wastes*) com base na densidade de pips coloridos predominantes no seu deck.
-* **Preservação Rigorosa de Tags do Archidekt**: Isola e mantém intactas todas as marcações e categorias personalizadas do seu deck (ex: `[Commander{top}]`, `[Ramp]`, `[Removal]`, etc.), permitindo exportar a lista tratada de volta para o Archidekt sem perder a organização.
-* **Relatório de Auditoria Completo**: Compara o total de cartas original com a saída gerada, alertando sobre a liberação de vagas ou contagens, e substituindo os terrenos básicos antigos de forma limpa.
+### 3. 🧮 Smart Mana Calculator (`manaCalculator.js`)
+* **Curve & Pip Analysis**: Evaluates mana costs and the mana curve (CMC) of non-land cards to mathematically calculate the ideal land count (suggesting between 30 and 42 cards).
+* **Proportional Basic Land Distribution**: Calculates the exact ratio for each basic land (*Plains, Island, Swamp, Mountain, Forest, Wastes*) based on the dominant colored mana pips in your deck.
+* **Strict Archidekt Tag Preservation**: Isolates and preserves 100% of your deck's custom tags and categories (e.g., `[Commander{top}]`, `[Ramp]`, `[Removal]`, etc.), allowing you to export the processed list back into Archidekt without losing organization.
+* **Complete Audit Report**: Compares original card counts with the generated output, alerting you to freed card slots or total counts while cleanly replacing old basic lands.
 
-### 4. 📦 Seletor de Sets (`setSelector.html`)
-* **Gerenciamento de Edições**: Ferramenta dedicada para consultar, gerenciar e alternar rapidamente entre diferentes edições e impressões de cartas para o seu deck.
+### 4. 📦 Set Selector (`setSelector.html`)
+* **Edition Management**: A dedicated tool to search, manage, and quickly swap between different card editions and printings for your deck.
 
-### 5. 🎛️ Menu Unificado da Extensão (`popup.html`)
-* **Hub Centralizador**: Um pop-up limpo e organizado acionado pelo ícone da extensão no Chrome, servindo como ponto de acesso principal para navegar entre os utilitários da suíte em janelas dedicadas.
-
----
-
-## 🛠️ Instalação e Uso (Modo Desenvolvedor)
-
-Como esta extensão roda localmente no seu navegador para fins de desenvolvimento e versionamento, siga os passos abaixo para instalá-la no Chrome:
-
-1. Clone ou baixe este repositório para uma pasta no seu computador.
-2. Abra o Google Chrome e acesse: `chrome://extensions/`
-3. No canto superior direito, ative o **Modo do desenvolvedor** (*Developer mode*).
-4. No canto superior esquerdo, clique em **Carregar sem compactação** (*Load unpacked*).
-5. Selecione a pasta raiz onde estão os arquivos da sua extensão.
-
-Pronto! A extensão já estará ativa e funcionando nas páginas suportadas.
+### 5. 🎛️ Unified Extension Menu (`popup.html`)
+* **Central Hub**: A clean and organized popup accessed from the Chrome extension icon, serving as the main launchpad for navigating the suite's tools in dedicated windows.
 
 ---
 
-## 📂 Estrutura do Projeto
+## 🛠️ Installation & Usage (Developer Mode)
+
+Since this extension runs locally in your browser for development and version control, follow these steps to install it in Chrome:
+
+1. Clone or download this repository to a folder on your computer.
+2. Open Google Chrome and go to: `chrome://extensions/`
+3. In the top right corner, enable **Developer mode**.
+4. In the top left corner, click **Load unpacked**.
+5. Select the root folder containing your extension files.
+
+Done! The extension will now be active and ready to use on supported pages.
+
+---
+
+## 📂 Project Structure
 
 ```text
-├── manifest.json            # Configuração e permissões da extensão Chrome
-├── popup.html               # Menu unificado da extensão
-├── setSelector.html         # Utilitário de seleção de sets
-├── manaCalculator.html      # Interface da Calculadora de Mana
-├── manaCalculator.js        # Lógica de pips, contagem e tags do Archidekt
-└── alt-HoverImage.js        # Script de hover, tokens com Alt+Q, links Scryfall e Tagger
+├── manifest.json            # Chrome extension configuration & permissions
+├── popup.html               # Unified extension menu
+├── setSelector.html         # Set selection utility
+├── manaCalculator.html      # Mana Calculator user interface
+├── manaCalculator.js        # Pip logic, card counting & Archidekt tag parsing
+└── alt-HoverImage.js        # Hover script, Alt+Q tokens, Scryfall & Tagger links

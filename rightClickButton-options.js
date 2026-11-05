@@ -2,13 +2,10 @@
 function criarMenu() {
   chrome.contextMenus.removeAll(() => {
     const contexts = ["image", "link", "selection"];
-    const documentUrlPatterns = ["https://edhrec.com/*", "https://www.google.com/*"];
     
-    // Itens para EDHREC
     chrome.contextMenus.create({ id: "open-scryfall", title: "Abrir essa carta no Scryfall", contexts: ["image", "link", "selection"], documentUrlPatterns: ["https://edhrec.com/*"] });
     chrome.contextMenus.create({ id: "open-tagger", title: "Abrir essa carta no Scryfall Tagger", contexts: ["image", "link", "selection"], documentUrlPatterns: ["https://edhrec.com/*"] });
 
-    // Novo item universal para abrir texto selecionado (ex: queries geradas pelo Google)
     chrome.contextMenus.create({
       id: "abrir-comando-scryfall",
       title: "Abrir comando no Scryfall",
@@ -26,9 +23,24 @@ function abrir(url) {
   chrome.tabs.create({ url });
 }
 
-// ---------- Atalho na Barra de Endereços (Omnibox: digite "sc" + Espaço) ----------
+// ---------- Atalho na Barra de Endereços (Omnibox com o novo prefixo) ----------
+
+chrome.omnibox.setDefaultSuggestion({
+  description: "🔍 Pesquisa Scryfall (Digite o seu pedido em linguagem natural)"
+});
+
+chrome.omnibox.onInputChanged.addListener((textoDigitado, sugedoes) => {
+  if (!textoDigitado) return;
+  
+  const queryCompleta = `Crie um comando válido no Scryfall que: ${textoDigitado}`;
+  
+  chrome.omnibox.setDefaultSuggestion({
+    description: `🚀 Enviar ao Google: <match>${queryCompleta}</match>`
+  });
+});
+
 chrome.omnibox.onInputEntered.addListener((textoDigitado) => {
-  const queryCompleta = `faça um comando valido no scryfall que: ${textoDigitado}`;
+  const queryCompleta = `Crie um comando válido no Scryfall que: ${textoDigitado}`;
   const urlGoogle = `https://www.google.com/search?q=${encodeURIComponent(queryCompleta)}`;
   abrir(urlGoogle);
 });
@@ -65,7 +77,6 @@ async function acharCarta(info) {
 
 // ---------- Cliques nos menus ----------
 chrome.contextMenus.onClicked.addListener(async (info) => {
-  // Novo fluxo: Abrir texto selecionado diretamente como query no Scryfall
   if (info.menuItemId === "abrir-comando-scryfall") {
     if (info.selectionText) {
       const queryLimpa = info.selectionText.trim();

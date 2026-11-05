@@ -4,75 +4,237 @@
   <meta charset="UTF-8">
   <title>Trocar set do deck</title>
   <style>
-    :root { color-scheme: light dark; }
-    body { margin: 0; padding: 14px; font: 13px system-ui, sans-serif; box-sizing: border-box; }
-    label { display: block; margin: 10px 0 3px; font-weight: 600; }
+    :root { color-scheme: dark; }
+    
+    body { 
+      margin: 0; 
+      padding: 36px; /* Removido o espaçamento excessivo do topo */
+      font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+      box-sizing: border-box; 
+      background-color: #0b0d13;
+      background-size: cover;
+      background-position: center; /* Centraliza a ilustração perfeitamente no fundo */
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      position: relative;
+      color: #f1f5f9;
+      min-width: 520px;
+    }
+
+    /* Overlay escuro mais leve para destacar bem a arte de fundo */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(11, 13, 19, 0.45); 
+      backdrop-filter: brightness(0.85);
+      z-index: -1;
+    }
+
+    .cabecalho-topo {
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .titulo-pagina {
+      font-size: 28px;            /* Aumentado de 20px para 28px */
+      font-weight: 800;            /* Mais encorpado e marcante */
+      color: #ffffff;
+      margin: 0;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-shadow: 0 4px 14px rgba(0, 0, 0, 0.85); /* Sombra mais pronunciada para destacar da arte de fundo */
+    }
+
+    /* Cartões bem transparentes (glassmorphism translúcido) */
+    .secao-card {
+      background: rgba(14, 17, 26, 0.45);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+    }
+
+    label.titulo-secao { 
+      display: block; 
+      margin-bottom: 10px; 
+      font-weight: 600; 
+      font-size: 11px;
+      letter-spacing: 0.6px;
+      color: #e2e8f0;
+      text-transform: uppercase;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    }
+
     textarea {
-      width: 100%; min-height: 120px; box-sizing: border-box;
-      font: 12px monospace; resize: vertical;
+      width: 100%; 
+      min-height: 110px; 
+      box-sizing: border-box;
+      font: 12px/1.4 "Fira Code", Consolas, monospace; 
+      resize: vertical;
+      background: rgba(8, 10, 15, 0.55);
+      color: #f1f5f9;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    input[type=text] { padding: 4px; box-sizing: border-box; }
-    #filtroSets { width: 100%; margin-top: 4px; }
+
+    textarea:focus, input[type=text]:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+
+    input[type=text] { 
+      width: 100%;
+      padding: 10px 14px; 
+      box-sizing: border-box; 
+      background: rgba(8, 10, 15, 0.55);
+      color: #f1f5f9;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    #filtroSets { margin-bottom: 10px; }
+
     #listaTipos {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; margin-top: 4px;
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 10px 16px; 
     }
-    #listaTipos label { margin: 0; padding: 2px 0; font-weight: normal; cursor: pointer; }
+    
+    #listaTipos label { 
+      margin: 0; 
+      font-weight: normal; 
+      font-size: 12px;
+      color: #f1f5f9;
+      cursor: pointer; 
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     #listaSets {
-      border: 1px solid #888; border-radius: 4px; margin-top: 4px;
-      height: 180px; min-height: 60px; overflow-y: auto; padding: 2px 0;
-      resize: vertical; /* alça de resize manual no canto inferior direito */
+      border: 1px solid rgba(255, 255, 255, 0.15); 
+      border-radius: 8px; 
+      background: rgba(8, 10, 15, 0.55);
+      height: 160px; 
+      overflow-y: auto; 
+      padding: 6px 0;
+      resize: vertical;
     }
+
     .set {
-      display: flex; gap: 6px; align-items: center; margin: 0;
-      padding: 3px 6px; font-weight: normal; cursor: pointer;
+      display: flex; 
+      gap: 8px; 
+      align-items: center; 
+      margin: 0;
+      padding: 8px 12px; 
+      font-weight: normal; 
+      font-size: 12px;
+      color: #f1f5f9;
+      cursor: pointer;
     }
-    .set:hover { background: rgba(128, 128, 128, 0.2); }
-    .set .cont { margin-left: auto; opacity: 0.7; white-space: nowrap; }
-    .vazio { padding: 6px; opacity: 0.7; }
-    .prioridade { margin-top: 4px; font-size: 12px; opacity: 0.85; }
-    .opcao { font-weight: normal; margin: 6px 0 0; }
-    button { margin-top: 10px; padding: 6px 12px; cursor: pointer; }
-    #limparSets { margin-top: 6px; padding: 3px 10px; font-size: 12px; }
-        #status {
-      position: sticky; bottom: 0; margin-top: 10px; padding: 8px 0;
-      white-space: pre-wrap; max-height: 40vh; overflow-y: auto;
-      background: Canvas; color: CanvasText; border-top: 1px solid #888;
+    .set:hover { background: rgba(59, 130, 246, 0.3); color: #fff; }
+    .set .cont { margin-left: auto; opacity: 0.7; font-size: 11px; white-space: nowrap; }
+    .vazio { padding: 18px; opacity: 0.6; text-align: center; font-style: italic; }
+    
+    .prioridade { margin-top: 10px; font-size: 11px; color: #cbd5e1; }
+    .opcao { font-weight: normal; font-size: 12px; color: #f1f5f9; display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 12px; }
+
+    button { 
+      padding: 10px 16px; 
+      cursor: pointer; 
+      background: rgba(25, 30, 42, 0.65);
+      color: #f1f5f9;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 12px;
+      transition: all 0.2s;
     }
+    button:hover { background: rgba(45, 53, 74, 0.85); border-color: #3b82f6; }
+
+    #carregar { width: 100%; margin-top: 12px; }
+    #gerar {
+      width: 100%;
+      background: rgba(37, 99, 235, 0.85);
+      color: white;
+      border: 1px solid rgba(59, 130, 246, 0.5);
+      padding: 14px;
+      font-size: 14px;
+      border-radius: 8px;
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+    }
+    #gerar:hover { background: rgba(29, 78, 216, 0.95); }
+
+    #limparSets { 
+      margin-top: 10px; padding: 6px 14px; font-size: 11px; 
+      background: transparent; border-color: rgba(255, 255, 255, 0.2); color: #e2e8f0;
+    }
+    #limparSets:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+    
+    #status {
+      margin-top: 8px; padding: 12px; white-space: pre-wrap; 
+      max-height: 160px; overflow-y: auto;
+      background: rgba(8, 10, 15, 0.55); color: #e2e8f0; 
+      border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px;
+      font-size: 11px; font-family: "Fira Code", Consolas, monospace;
+    }
+
+    input[type="checkbox"] { accent-color: #2563eb; width: 15px; height: 15px; cursor: pointer; }
   </style>
 </head>
 <body>
-  <label for="entrada">Lista do deck (texto exportado do Archidekt)</label>
-  <textarea id="entrada" placeholder="1x Sol Ring (c21) [Ramp]&#10;1x Arcane Signet (eld)"></textarea>
 
-  <label class="opcao"><input type="checkbox" id="basicos"> incluir terrenos básicos</label>
-  <button id="carregar">1. Carregar sets disponíveis</button>
-
-  <label>Versões da arte (marque na ordem de prioridade)</label>
-  <div id="listaTipos">
-    <label><input type="checkbox" value="full"> Full art</label>
-    <label><input type="checkbox" value="extended"> Extended art</label>
-    <label><input type="checkbox" value="showcase"> Showcase</label>
-    <label><input type="checkbox" value="borderless"> Borderless</label>
-    <label><input type="checkbox" value="normal"> Normal</label>
-    <label><input type="checkbox" value="qualquer"> Qualquer versão</label>
+  <div class="cabecalho-topo">
+    <h1 class="titulo-pagina">✨ Aplique uma temática ao seu deck!</h1>
   </div>
-  <div class="prioridade" id="prioridadeTipos"></div>
 
-  <label for="filtroSets">Sets disponíveis (marque um ou mais, na ordem de prioridade)</label>
-  <input type="text" id="filtroSets" placeholder="filtrar por código ou nome...">
-  <div id="listaSets"><div class="vazio">Cole a lista e clique em "Carregar sets disponíveis".</div></div>
-  <div class="prioridade" id="prioridade"></div>
-  <button id="limparSets" type="button">Limpar sets marcados</button>
+  <div class="secao-card">
+    <label class="titulo-secao" for="entrada">Lista do deck (texto exportado do Archidekt)</label>
+    <textarea id="entrada" placeholder="1x Sol Ring (c21) [Ramp]&#10;1x Arcane Signet (eld)"></textarea>
+    <label class="opcao"><input type="checkbox" id="basicos"> incluir terrenos básicos</label>
+    <button id="carregar">1. Carregar sets disponíveis</button>
+  </div>
 
-  <label class="opcao"><input type="checkbox" id="fallback" checked> se nenhuma versão marcada existir, usar a normal</label>
+  <div class="secao-card">
+    <label class="titulo-secao">Versões da arte (marque na ordem de prioridade)</label>
+    <div id="listaTipos">
+      <label><input type="checkbox" value="full"> Full art</label>
+      <label><input type="checkbox" value="extended"> Extended art</label>
+      <label><input type="checkbox" value="showcase"> Showcase</label>
+      <label><input type="checkbox" value="borderless"> Borderless</label>
+      <label><input type="checkbox" value="normal"> Normal</label>
+      <label><input type="checkbox" value="qualquer"> Qualquer versão</label>
+    </div>
+    <div class="prioridade" id="prioridadeTipos"></div>
+  </div>
+
+  <div class="secao-card">
+    <label class="titulo-secao" for="filtroSets">Sets disponíveis (marque um ou mais, na ordem)</label>
+    <input type="text" id="filtroSets" placeholder="🔍 Filtrar por código ou nome...">
+    <div id="listaSets"><div class="vazio">Cole a lista e clique em "Carregar sets disponíveis".</div></div>
+    <div class="prioridade" id="prioridade"></div>
+    <button id="limparSets" type="button">Limpar sets marcados</button>
+    <label class="opcao" style="margin-top: 14px;"><input type="checkbox" id="fallback" checked> se nenhuma versão marcada existir, usar a normal</label>
+  </div>
 
   <button id="gerar">2. Gerar lista</button>
 
-  <label for="saida">Resultado</label>
-  <textarea id="saida" readonly></textarea>
-  <button id="copiar">Copiar resultado</button>
+  <div class="secao-card" style="margin-top: 20px;">
+    <label class="titulo-secao">📈 Resumo da Auditoria</label>
+    <div id="status">Aguardando geração da lista...</div>
+  </div>
 
-  <div id="status"></div>
   <script src="setSelector.js"></script>
 </body>
 </html>

@@ -1,7 +1,6 @@
-// popup.js - Menu principal: só abre cada ferramenta em uma janela própria
+// popup.js - Menu principal: abre apenas Seletor de Sets e Calculadora de Mana
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Abre a janela da ferramenta, ou traz para a frente se ela já estiver aberta
   async function abrirJanelaDedicada(pagina, largura, altura) {
     const url = chrome.runtime.getURL(pagina);
 
@@ -21,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
         top: 0
       });
     }
-    window.close(); // fecha o menu
+    window.close();
   }
 
   const ligar = (id, pagina, largura, altura) => {
@@ -29,7 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (botao) botao.addEventListener("click", () => abrirJanelaDedicada(pagina, largura, altura));
   };
 
-  ligar("btnAbrirBuscaIA", "buscaIA.html", 560, 600);
   ligar("btnAbrirSetSelector", "setSelector.html", 650, 1000);
   ligar("btnAbrirManaCalc", "manaCalculator.html", 750, 720);
 });

@@ -1,3 +1,10 @@
+// 1. Ajuste de tamanho inicial na proporção da carta (822x1122)
+window.addEventListener("DOMContentLoaded", () => {
+  if (window.resizeTo) {
+    window.resizeTo(822, 1122);
+  }
+});
+
 const $ = (id) => document.getElementById(id);
 
 const BASICOS = new Set([
@@ -8,7 +15,7 @@ const BASICOS = new Set([
 
 const TAMANHO_LOTE = 15;
 const CACHE_CHAVE = "cachePrintsV3";
-const VALIDADE_MS = 3 * 24 * 60 * 60 * 1000; // 3 dias
+const VALIDADE_MS = 3 * 24 * 60 * 60 * 1000;
 const TIMEOUT_MS = 30000;
 
 const frente = (nome) => nome.split(" // ")[0].trim().toLowerCase();
@@ -17,14 +24,12 @@ const avisar = (msg) => {
   $("status").textContent = msg;
 };
 
-// ---------- Estado ----------
-let dados = new Map();        // nome da frente -> lista de impressões
-let assinatura = "";          // identifica a lista que foi carregada
-let selecionados = [];        // códigos de set, na ordem em que foram marcados
-let tiposSelecionados = [];   // versões de arte, na ordem em que foram marcadas
+let dados = new Map();
+let assinatura = "";
+let selecionados = [];
+let tiposSelecionados = [];
 
-// ---------- Versões de arte (filtros aplicados localmente) ----------
-const serial = (p) => p.pt.includes("serialized");
+const serial = (p) => p.pt && p.pt.includes("serialized");
 
 const FILTROS = {
   qualquer: () => true,
@@ -45,15 +50,12 @@ const ROTULOS = {
   extended: "Extended art"
 };
 
-// Versões que valem de fato, em ordem de prioridade.
-// Nenhuma marcada = normal. Com a opção de fallback ligada, a normal entra no fim.
 function tiposEfetivos() {
   const tipos = tiposSelecionados.length ? [...tiposSelecionados] : ["normal"];
   if ($("fallback").checked && !tipos.includes("normal")) tipos.push("normal");
   return tipos;
 }
 
-// ---------- Cache ----------
 function lerCache() {
   try {
     return JSON.parse(localStorage.getItem(CACHE_CHAVE) || "{}");
@@ -78,8 +80,6 @@ const minimo = (c) => ({
   pt: c.promo_types || []
 });
 
-// ---------- Leitura da lista ----------
-// Lê uma linha como "1x Nome (set) 123 [Categoria]" e separa as partes
 function lerLinha(linha) {
   const m = linha.trim().match(/^(\d+)\s*x?\s+(.*)$/i);
   if (!m) return null;
@@ -88,7 +88,6 @@ function lerLinha(linha) {
   let resto = m[2];
   let sufixo = "";
 
-  // Categorias, tags e marcador de foil ficam no sufixo e são preservados
   const s = resto.search(/\s+(?:\[|\^|\*[A-Za-z]\*)/);
   if (s >= 0) {
     sufixo = resto.slice(s);
@@ -96,10 +95,17 @@ function lerLinha(linha) {
   }
 
   let nome = resto.trim();
-  const p = resto.match(/^(.*?)\s+\(([A-Za-z0-9]+)\)(?:\s+(\S+))?\s*$/);
-  if (p) nome = p[1].trim();
+  let setEspecifico = null;
+  let numeroEspecifico = null;
 
-  return { qtd, nome, sufixo };
+  const p = resto.match(/^(.*?)\s+\(([A-Za-z0-9]+)\)(?:\s+(\S+))?\s*$/);
+  if (p) {
+    nome = p[1].trim();
+    setEspecifico = p[2].toLowerCase();
+    numeroEspecifico = p[3] ? p[3].toLowerCase() : null;
+  }
+
+  return { qtd, nome, sufixo, setEspecifico, numeroEspecifico };
 }
 
 function nomesDoDeck(lidas) {
@@ -115,8 +121,6 @@ function nomesDoDeck(lidas) {
 
 const assinaturaDe = (nomes) => nomes.map(frente).sort().join("|");
 
-// ---------- Requisições ----------
-// fetch com limite de tempo, para nunca ficar parado em silêncio
 async function buscarComTimeout(url, opcoes) {
   const controle = new AbortController();
   const timer = setTimeout(() => controle.abort(), TIMEOUT_MS);
@@ -132,7 +136,6 @@ async function buscarComTimeout(url, opcoes) {
   }
 }
 
-// Se o Scryfall pedir calma (429), espera mostrando a contagem regressiva
 async function pedir(url, opcoes, rotulo = "") {
   for (let tentativa = 1; tentativa <= 3; tentativa++) {
     const resposta = await buscarComTimeout(url, opcoes);
@@ -148,11 +151,10 @@ async function pedir(url, opcoes, rotulo = "") {
     }
   }
   throw new Error(
-    "O Scryfall limitou as requisições (429). Espere uns 10 minutos e tente de novo: o que já foi carregado ficou salvo."
+    "O Scryfall limitou as requisições (429). Espere uns 10 minutos e tente de novo."
   );
 }
 
-// Baixa todas las impressões (em papel) de cada carta, em lotes
 async function carregarPrints(nomes, onProgresso) {
   const cache = lerCache();
   const agora = Date.now();
@@ -194,7 +196,7 @@ async function carregarPrints(nomes, onProgresso) {
       );
 
       const resposta = await pedir(url, { headers: { Accept: "application/json" } }, rotulo);
-      if (resposta.status === 404) break; // nenhuma carta do lote encontrada
+      if (resposta.status === 404) break;
       if (!resposta.ok) throw new Error("Scryfall respondeu " + resposta.status);
 
       const json = await resposta.json();
@@ -222,7 +224,101 @@ async function carregarPrints(nomes, onProgresso) {
   return resultado;
 }
 
-// ---------- Versões: caixas e prioridade ----------
+// 🎨 Fundo Inteligente com cálculo real de Set Majoritário (alinhado com o painel de sets)
+async function aplicarFundoInteligente(lidas) {
+  try {
+    let cartaAlvo = null;
+    let motivoLog = "";
+
+    // 1. TENTA POR TAG DE COMMANDER
+    const linhaCommander = lidas.find(l => l && l.sufixo && /commander/i.test(l.sufixo));
+    
+    if (linhaCommander) {
+      const k = frente(linhaCommander.nome);
+      const prints = dados.get(k);
+      if (prints && prints.length > 0) {
+        cartaAlvo = prints[0];
+        if (linhaCommander.setEspecifico) {
+          const achada = prints.find(p => p.s.toLowerCase() === linhaCommander.setEspecifico);
+          if (achada) cartaAlvo = achada;
+        }
+        motivoLog = `🖼️ Fundo aplicado via Comandante: ${linhaCommander.nome} (${cartaAlvo.s.toUpperCase()} ${cartaAlvo.c})`;
+      }
+    }
+
+    // 2. FALLBACK: SET MAJORITÁRIO (Usando os mesmos dados e filtros da lista visual)
+    if (!cartaAlvo && dados.size > 0) {
+      const mapaSets = setsDisponiveis();
+
+      // Encontra o set que cobre a maior quantidade de cartas únicas do deck
+      let setMajoritario = null;
+      let maxCartas = 0;
+      for (const [codigoSet, info] of mapaSets.entries()) {
+        if (info.cartas.size > maxCartas) {
+          maxCartas = info.cartas.size;
+          setMajoritario = codigoSet;
+        }
+      }
+
+      if (setMajoritario) {
+        for (const l of lidas) {
+          if (!l || BASICOS.has(l.nome.toLowerCase())) continue;
+          const k = frente(l.nome);
+          const prints = dados.get(k);
+          if (prints) {
+            const printNoSet = prints.find(p => p.s === setMajoritario);
+            if (printNoSet) {
+              cartaAlvo = printNoSet;
+              motivoLog = `🖼️ Fundo aplicado via Set Majoritário [${setMajoritario.toUpperCase()}]: ${l.nome}`;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // 3. FALLBACK FINAL: PRIMEIRA CARTA NÃO BÁSICA
+    if (!cartaAlvo && lidas.length > 0) {
+      const primeiraValida = lidas.find(l => l && !BASICOS.has(l.nome.toLowerCase()));
+      if (primeiraValida) {
+        const prints = dados.get(frente(primeiraValida.nome));
+        if (prints && prints.length > 0) {
+          cartaAlvo = prints[0];
+          motivoLog = `🖼️ Fundo aplicado via Primeira Carta: ${primeiraValida.nome}`;
+        }
+      }
+    }
+
+    // CARREGA A IMAGEM NO SCRYFALL E ATUALIZA O LOG
+    if (cartaAlvo) {
+      const urlScryfall = `https://api.scryfall.com/cards/${cartaAlvo.s}/${cartaAlvo.c}`;
+      const resp = await fetch(urlScryfall);
+      if (resp.ok) {
+        const json = await resp.json();
+        
+        const urlImagem = json.image_uris 
+          ? json.image_uris.art_crop 
+          : (json.card_faces && json.card_faces[0].image_uris 
+              ? json.card_faces[0].image_uris.art_crop 
+              : null);
+
+        if (urlImagem) {
+          document.body.style.backgroundImage = `url('${urlImagem}')`;
+
+          const logAtual = $("status").textContent;
+          $("status").textContent = motivoLog + (logAtual ? "\n\n" + logAtual : "");
+          return;
+        }
+      }
+    }
+
+    document.body.style.backgroundImage = "none";
+
+  } catch (e) {
+    console.warn("Erro ao definir imagem de fundo inteligente:", e);
+  }
+}
+
 function atualizarPrioridadeTipos() {
   const ordem = tiposEfetivos().map((t) => ROTULOS[t]);
   $("prioridadeTipos").textContent = "Prioridade das versões: " + ordem.join(" › ");
@@ -242,11 +338,9 @@ $("fallback").addEventListener("change", () => {
   desenharSets();
 });
 
-// ---------- Lista de sets ----------
-// Quais sets têm pelo menos uma carta do deck em alguma das versões escolhidas
 function setsDisponiveis() {
   const filtros = tiposEfetivos().map((t) => FILTROS[t]);
-  const mapa = new Map(); // código -> { nome, cartas: Set }
+  const mapa = new Map();
   for (const [k, lista] of dados) {
     for (const p of lista) {
       if (serial(p) || !filtros.some((f) => f(p))) continue;
@@ -319,7 +413,6 @@ function desenharSets() {
 
 $("filtroSets").addEventListener("input", desenharSets);
 
-// Desmarca todos os sets (inclusive os escondidos pelo filtro de busca)
 const botaoLimpar = $("limparSets");
 if (botaoLimpar) {
   botaoLimpar.addEventListener("click", () => {
@@ -329,12 +422,12 @@ if (botaoLimpar) {
   });
 }
 
-// ---------- Etapa 1: carregar sets ----------
 $("carregar").addEventListener("click", async () => {
   if (!$("entrada").value.trim()) return avisar("Cole a lista do deck.");
 
   try {
-    const lidas = $("entrada").value.split("\n").map(lerLinha);
+    const linhasBrutas = $("entrada").value.split("\n");
+    const lidas = linhasBrutas.map(lerLinha);
     const nomes = nomesDoDeck(lidas);
     if (!nomes.length) return avisar("Não encontrei cartas na lista.");
 
@@ -345,25 +438,27 @@ $("carregar").addEventListener("click", async () => {
     assinatura = assinaturaDe(nomes);
 
     desenharSets();
+
     avisar(
       `${dados.size} carta(s) carregada(s), ${setsDisponiveis().size} set(s) disponível(is).\n` +
-        'Marque as versões e os sets (a ordem de marcação é a prioridade) e clique em "Gerar lista".'
+        'Marque as versões e os sets e clique em "Gerar lista".'
     );
+
+    // Executa a busca de fundo inteligente e injeta no topo do log
+    await aplicarFundoInteligente(lidas);
+
   } catch (erro) {
     avisar("Erro: " + erro.message);
   }
 });
 
-// ---------- Etapa 2: gerar lista (sem requisições) ----------
 function escolher(lista, set, filtro) {
   const candidatas = lista.filter((p) => p.s === set && !serial(p) && filtro(p));
   candidatas.sort((a, b) => a.c.localeCompare(b.c, undefined, { numeric: true }));
   return candidatas[0] || null;
 }
 
-$("gerar").addEventListener("click", () => {
-  $("saida").value = "";
-
+$("gerar").addEventListener("click", async () => {
   if (!dados.size) return avisar('Clique primeiro em "Carregar sets disponíveis".');
   if (!selecionados.length) return avisar("Marque pelo menos um set.");
 
@@ -382,13 +477,12 @@ $("gerar").addEventListener("click", () => {
   const trocadas = [];
   const saida = linhas.map((linha, i) => {
     const l = lidas[i];
-    if (!l) return linha; // linha que não é carta: mantém como está
+    if (!l) return linha;
     if (BASICOS.has(l.nome.toLowerCase()) && !incluirBasicos) return linha;
 
     const prints = dados.get(frente(l.nome));
     if (!prints || !prints.length) return linha;
 
-    // Versão primeiro (na ordem marcada), depois os sets (na ordem marcada)
     let carta = null;
     let tipoUsado = null;
     for (const tipo of tipos) {
@@ -401,29 +495,42 @@ $("gerar").addEventListener("click", () => {
         break;
       }
     }
-    if (!carta) return linha; // mantém a impressão atual
+    if (!carta) return linha;
 
     const codigo = carta.s.toUpperCase();
     trocadas.push(`${l.nome} → ${codigo} ${carta.c} (${ROTULOS[tipoUsado].toLowerCase()})`);
     return `${l.qtd}x ${l.nome} (${codigo}) ${carta.c}${l.sufixo}`;
   });
 
-  $("saida").value = saida.join("\n");
+  const listaGeradaTexto = saida.join("\n");
+  const relatorioTexto = trocadas.length
+    ? `${trocadas.length} carta(s) trocada(s):\n- ` + trocadas.join("\n- ")
+    : "Nenhuma carta foi encontrada nos sets marcados com essas versões.";
 
-  avisar(
-    trocadas.length
-      ? `${trocadas.length} carta(s) trocada(s):\n- ` + trocadas.join("\n- ")
-      : "Nenhuma carta foi encontrada nos sets marcados com essas versões."
-  );
-});
+  await chrome.storage.local.set({
+    resultadoListaMTG: listaGeradaTexto,
+    relatorioMTG: relatorioTexto
+  });
 
-$("copiar").addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText($("saida").value);
-    avisar("Copiado!");
-  } catch (erro) {
-    $("saida").select();
-    avisar("Não consegui copiar sozinho: use Ctrl+C no resultado.");
+  avisar(relatorioTexto);
+
+  const url = chrome.runtime.getURL("resultadoSet.html");
+  const janelas = await chrome.windows.getAll({ populate: true });
+  const existente = janelas.find((j) => j.tabs && j.tabs.some((t) => t.url === url));
+
+  if (existente) {
+    await chrome.windows.update(existente.id, { focused: true });
+    const abaAlvo = existente.tabs.find((t) => t.url === url);
+    if (abaAlvo) chrome.tabs.reload(abaAlvo.id);
+  } else {
+    await chrome.windows.create({
+      url,
+      type: "popup",
+      width: 600,
+      height: 700,
+      top: 50,
+      left: 100
+    });
   }
 });
 

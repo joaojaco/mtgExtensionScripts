@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Magic Extension - EDHREC & Archidekt Tools",
-  "version": "2.0",
-  "description": "Ferramentas para Magic: The Gathering (Seletor de Sets, Calculadora de Mana e Automação Scryfall via Google)",
+  "version": "2.1",
+  "description": "Ferramentas para Magic: The Gathering",
   "permissions": [
     "storage",
     "contextMenus"
@@ -17,10 +17,6 @@
     {
       "matches": ["https://edhrec.com/*"],
       "js": ["alt-HoverImage.js"]
-    },
-    {
-      "matches": ["https://www.google.com/search*"],
-      "js": ["googleInjecao.js"]
     }
   ],
   "action": {
@@ -35,7 +31,9 @@
       "resources": [
         "setSelector.html",
         "manaCalculator.html",
-        "manaCalculator.js"
+        "manaCalculator.js",
+        "resultadoSet.html",
+        "resultadoSet.js"
       ],
       "matches": ["<all_urls>"]
     }
